@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QComboBox
+    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QComboBox, QHBoxLayout, QCheckBox
 )
 import sys
 
@@ -16,7 +16,7 @@ class committeeCreate(QWidget):
 
         layout = QVBoxLayout()
 
-        self.label = QLabel("Create a new committee")
+        self.label = QLabel("<h1>Create a new committee</h1>")
         layout.addWidget(self.label)
 
         self.label = QLabel("\nCommittee name*")
@@ -148,9 +148,34 @@ class participants(QWidget):
         if len(delegatesList) < 2:
             pass
         else:
-            pass
+            self.setup = attendance()
+            self.setup.show()
+            self.close()
 
+class attendance(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Oratora — Attendance")
+        self.setGeometry(100, 100, 500, 400)
 
+        verticalLayout = QVBoxLayout()
+
+        for delegate in delegatesList:
+            layout = QHBoxLayout()
+
+            label = QLabel(delegate)
+            present = QCheckBox("Present")
+            voting = QCheckBox("Voting")
+
+            layout.addWidget(label)
+            layout.addWidget(present)
+            layout.addWidget(voting)
+            layout.addStretch()
+
+            verticalLayout.addLayout(layout)
+
+        verticalLayout.addStretch()
+        self.setLayout(verticalLayout)
 
 
 if __name__ == "__main__":
