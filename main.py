@@ -160,6 +160,8 @@ class attendance(QWidget):
 
         verticalLayout = QVBoxLayout()
 
+        self.rollCall = []
+
         for delegate in delegatesList:
             layout = QHBoxLayout()
 
@@ -168,14 +170,31 @@ class attendance(QWidget):
             voting = QCheckBox("Voting")
 
             layout.addWidget(label)
+            layout.addStretch()
             layout.addWidget(present)
             layout.addWidget(voting)
-            layout.addStretch()
+
 
             verticalLayout.addLayout(layout)
 
+            self.rollCall.append({
+                "delegate": delegate,
+                "present": present,
+                "voting": voting,
+            })
+        submit = QPushButton("Finish roll-call")
+        submit.clicked.connect(self.submit)
+        verticalLayout.addWidget(submit)
         verticalLayout.addStretch()
         self.setLayout(verticalLayout)
+
+    def submit(self):
+        for i in self.rollCall:
+            delegate = i["delegate"]
+            present = i["present"]
+            voting = i["voting"]
+
+            print(f"{delegate}: Present={present.isChecked()}, Voting={voting.isChecked()}")
 
 
 if __name__ == "__main__":
