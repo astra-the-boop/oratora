@@ -1,12 +1,18 @@
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QComboBox, QHBoxLayout, QCheckBox
+    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QComboBox, QHBoxLayout, QCheckBox,
+    QMainWindow
 )
+from PySide6.QtGui import Qt
 import sys
 
 committeeName = ""
 topic = ""
 conferenceName = ""
 delegatesList=[]
+presentVotingList=[#same index as delegatesList
+    [],#present
+    []#voting
+]
 
 class committeeCreate(QWidget):
     def __init__(self):
@@ -139,6 +145,7 @@ class participants(QWidget):
             delegateAdded = self.delegates.currentText().strip()
         else:
             delegateAdded = self.customDel.text().strip()
+            self.customDel.clear()
         if delegateAdded.strip() not in delegatesList:
             self.delegateList.addItem(delegateAdded)
             delegatesList.append(delegateAdded)
@@ -155,11 +162,11 @@ class participants(QWidget):
 class attendance(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Oratora — Attendance")
+        self.setWindowTitle("Oratora — Roll Call")
+
         self.setGeometry(100, 100, 500, 400)
 
         verticalLayout = QVBoxLayout()
-
         self.rollCall = []
 
         for delegate in delegatesList:
@@ -168,12 +175,14 @@ class attendance(QWidget):
             label = QLabel(delegate)
             present = QCheckBox("Present")
             voting = QCheckBox("Voting")
+            voting.setEnabled(False)
+
+            self.connectCheckboxes(present, voting)
 
             layout.addWidget(label)
             layout.addStretch()
             layout.addWidget(present)
             layout.addWidget(voting)
-
 
             verticalLayout.addLayout(layout)
 
@@ -182,20 +191,74 @@ class attendance(QWidget):
                 "present": present,
                 "voting": voting,
             })
+
         submit = QPushButton("Finish roll-call")
         submit.clicked.connect(self.submit)
         verticalLayout.addWidget(submit)
         verticalLayout.addStretch()
+
         self.setLayout(verticalLayout)
 
+    def connectCheckboxes(self, present, voting):
+        def onStateChanged(state):
+            if state:
+                voting.setEnabled(True)
+            else:
+                voting.setEnabled(False)
+        present.stateChanged.connect(onStateChanged)
+
     def submit(self):
-        for i in self.rollCall:
-            delegate = i["delegate"]
-            present = i["present"]
-            voting = i["voting"]
+        presentVotingList[0].clear()
+        presentVotingList[1].clear()
 
-            print(f"{delegate}: Present={present.isChecked()}, Voting={voting.isChecked()}")
+        for record in self.rollCall:
+            isPresent = record["present"].isChecked()
+            isVoting = record["voting"].isChecked()
+            presentVotingList[0].append(isPresent)
+            presentVotingList[1].append(isVoting)
 
+        self.presentWindow = presentationWindow()
+        self.presentWindow.show()
+
+        print(presentVotingList)
+
+class presentationWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Roll call")
+        self.setGeometry(150, 150, 1280, 720)
+
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
+
+        verticalLayout = QVBoxLayout()
+
+        header = QLabel("<h1>Roll call</h1><br>")
+        verticalLayout.addWidget(header)
+
+        for i in range(len(delegatesList)):
+            print(presentVotingList)
+            print(i)
+            rowLayout = QHBoxLayout()
+
+            nameLabel = QLabel(delegatesList[i])
+            rowLayout.addWidget(nameLabel)
+
+            present = presentVotingList[0][i]
+            voting = presentVotingList[1][i]
+
+            presentLabel = QLabel("Present" if present else "Not present")
+            presentLabel.setStyleSheet("color: green;" if present else "color: red;")
+            rowLayout.addWidget(presentLabel)
+            votingLabel = QLabel("Voting" if voting else "Not Voting")
+            votingLabel.setStyleSheet("color: #5b92e5;" if present else "color: gray;")
+            rowLayout.addWidget(votingLabel)
+
+            rowLayout.addStretch()
+            verticalLayout.addLayout(rowLayout)
+
+        verticalLayout.addStretch()
+        centralWidget.setLayout(verticalLayout)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
