@@ -225,6 +225,7 @@ class attendance(QWidget):
 class presentationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Roll call")
         self.setGeometry(150, 150, 1280, 720)
 
@@ -232,7 +233,8 @@ class presentationWindow(QMainWindow):
         self.setCentralWidget(centralWidget)
 
         verticalLayout = QVBoxLayout()
-
+        verticalLayout.setContentsMargins(40, 20, 40, 20)
+        verticalLayout.setSpacing(20)
         header = QLabel("<h1>Roll call</h1><br>")
         verticalLayout.addWidget(header)
 
@@ -243,7 +245,7 @@ class presentationWindow(QMainWindow):
 
             nameLabel = QLabel(delegatesList[i])
             rowLayout.addWidget(nameLabel)
-
+            rowLayout.addStretch()
             present = presentVotingList[0][i]
             voting = presentVotingList[1][i]
 
@@ -251,11 +253,15 @@ class presentationWindow(QMainWindow):
             presentLabel.setStyleSheet("color: green;" if present else "color: red;")
             rowLayout.addWidget(presentLabel)
             votingLabel = QLabel("Voting" if voting else "Not Voting")
-            votingLabel.setStyleSheet("color: #5b92e5;" if present else "color: gray;")
+            votingLabel.setStyleSheet("color: #5b92e5;" if voting else "color: gray;")
             rowLayout.addWidget(votingLabel)
 
-            rowLayout.addStretch()
-            verticalLayout.addLayout(rowLayout)
+            centered = QHBoxLayout()
+            centered.addStretch()
+            centered.addLayout(rowLayout)
+            centered.addStretch()
+
+            verticalLayout.addLayout(centered)
 
         verticalLayout.addStretch()
         centralWidget.setLayout(verticalLayout)
