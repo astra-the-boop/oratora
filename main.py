@@ -305,8 +305,7 @@ class presentationWindow(QMainWindow):
         self.verticalLayout = QVBoxLayout()
         self.centralWidget.setLayout(self.verticalLayout)
 
-        self.header = QLabel("<h1>Roll call</h1>")
-        self.verticalLayout.addWidget(self.header)
+
 
         self.contentLayout = QVBoxLayout()
         self.verticalLayout.addLayout(self.contentLayout)
@@ -335,14 +334,6 @@ class presentationWindow(QMainWindow):
             speakingLabel = QLabel(f"Speaking time: {speakingTime} sec")
             self.contentLayout.addWidget(speakingLabel)
 
-    def clearLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-            elif item.layout():
-                self.clearLayout(item.layout())
     def updateContents(self):
         while self.contentLayout.count():
             item = self.contentLayout.takeAt(0)
@@ -354,6 +345,8 @@ class presentationWindow(QMainWindow):
                 item.layout().deleteLater()
 
         for i in range(len(delegatesList)):
+            self.header = QLabel("<h1>Roll call</h1>")
+            self.verticalLayout.addWidget(self.header)
             rowLayout = QHBoxLayout()
             nameLabel = QLabel(delegatesList[i])
             rowLayout.addWidget(nameLabel)
