@@ -312,7 +312,37 @@ class presentationWindow(QMainWindow):
         self.verticalLayout.addLayout(self.contentLayout)
 
         self.verticalLayout.addStretch()
+    def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None,
+                      speakingTime=None):
+        self.clearLayout(self.contentLayout)
 
+        motionLabel = QLabel(f"<h2>{motionType}</h2>")
+        self.contentLayout.addWidget(motionLabel)
+
+        proposerLabel = QLabel(f"Proposed by: {proposer}")
+        self.contentLayout.addWidget(proposerLabel)
+
+        if title:
+            titleLabel = QLabel(f"Title: {title}")
+            self.contentLayout.addWidget(titleLabel)
+
+        if totalMinutes is not None and totalSeconds is not None:
+            duration = f"{totalMinutes} min {totalSeconds} sec"
+            timeLabel = QLabel(f"Total time: {duration}")
+            self.contentLayout.addWidget(timeLabel)
+
+        if speakingTime is not None:
+            speakingLabel = QLabel(f"Speaking time: {speakingTime} sec")
+            self.contentLayout.addWidget(speakingLabel)
+
+    def clearLayout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            elif item.layout():
+                self.clearLayout(item.layout())
     def updateContents(self):
         while self.contentLayout.count():
             item = self.contentLayout.takeAt(0)
@@ -425,7 +455,6 @@ class motions(QMainWindow):
 
         self.presentWindow.displayMotion(motionType, proposer, title, totalMin, totalSec, speaking)
         self.presentWindow.show()
-        self.close()
 
     def onTypeChanged(self, layout, presentWindow):
         motionType = self.motionType.currentText()
@@ -711,37 +740,7 @@ class motions(QMainWindow):
 
             layout.addStretch()
 
-    def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None,
-                      speakingTime=None):
-        self.clearLayout(self.contentLayout)
 
-        motionLabel = QLabel(f"<h2>{motionType}</h2>")
-        self.contentLayout.addWidget(motionLabel)
-
-        proposerLabel = QLabel(f"Proposed by: {proposer}")
-        self.contentLayout.addWidget(proposerLabel)
-
-        if title:
-            titleLabel = QLabel(f"Title: {title}")
-            self.contentLayout.addWidget(titleLabel)
-
-        if totalMinutes is not None and totalSeconds is not None:
-            duration = f"{totalMinutes} min {totalSeconds} sec"
-            timeLabel = QLabel(f"Total time: {duration}")
-            self.contentLayout.addWidget(timeLabel)
-
-        if speakingTime is not None:
-            speakingLabel = QLabel(f"Speaking time: {speakingTime} sec")
-            self.contentLayout.addWidget(speakingLabel)
-
-    def clearLayout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-            elif item.layout():
-                self.clearLayout(item.layout())
 
     def initMenuBar(self):
         menuBar = self.menuBar()
