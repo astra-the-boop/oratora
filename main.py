@@ -1,8 +1,5 @@
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QComboBox, QHBoxLayout, QCheckBox,
-    QMainWindow
-)
-from PySide6.QtGui import Qt
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import *
 import sys
 
 committeeName = ""
@@ -14,13 +11,16 @@ presentVotingList=[#same index as delegatesList
     []#voting
 ]
 
-class committeeCreate(QWidget):
+class committeeCreate(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Oratora — Create Committee")
         self.setGeometry(100, 100, 500, 400)
 
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
         layout = QVBoxLayout()
+        centralWidget.setLayout(layout)
 
         self.label = QLabel("<h1>Create a new committee</h1>")
         layout.addWidget(self.label)
@@ -48,7 +48,7 @@ class committeeCreate(QWidget):
         layout.addWidget(submit)
 
         layout.addStretch()
-        self.setLayout(layout)
+        self.initMenuBar()
 
     def submitForm(self):
         committeeName = self.committeeName.text()
@@ -58,27 +58,49 @@ class committeeCreate(QWidget):
         print(committeeName, topic, conferenceName)
 
         if committeeName.strip() == "":
-            warning = QLabel("Committee name cannot be empty")
-            self.layout().addWidget(warning)
+            QMessageBox.warning(self, "Missing Info", "Committee name cannot be empty")
         else:
             self.dashboard = participants(committeeName, topic, conferenceName)
             self.dashboard.show()
             self.close()
 
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
 
-class participants(QWidget):
+        fileMenu = menuBar.addMenu("File")
+
+        save = QAction("Save", self)
+        save.triggered.connect(lambda: print("Save clicked!"))
+        fileMenu.addAction(save)
+
+        loadAction = QAction("Load", self)
+        loadAction.triggered.connect(lambda: print("Load clicked!"))
+        fileMenu.addAction(loadAction)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
+
+
+class participants(QMainWindow):
     def __init__(self, committeeName="", topic="", conferenceName=""):
         super().__init__()
         print(committeeName, topic, conferenceName)
         self.setWindowTitle("Oratora — Dashboard")
         self.setGeometry(100, 100, 500, 400)
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
         layout = QVBoxLayout()
+        centralWidget.setLayout(layout)
 
-        self.label = QLabel(committeeName)
+        self.label = QLabel(f"<h1>{committeeName}</h1>")
         layout.addWidget(self.label)
-        self.label = QLabel(f"Topic: {topic}")
+        self.label = QLabel(f"<h4>Topic: {topic}</h4>")
         layout.addWidget(self.label)
-        self.label = QLabel(f"Conference: {conferenceName}")
+        self.label = QLabel(f"<h4>Conference: {conferenceName}</h4>")
         layout.addWidget(self.label)
 
         self.label = QLabel(f"\nParticipating delegates:")
@@ -90,10 +112,9 @@ class participants(QWidget):
             "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
             "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
             "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria",
-            "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada",
-            "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
-            "Congo (Brazzaville)", "Congo (Kinshasa)", "Costa Rica", "Croatia", "Cuba",
-            "Cyprus", "Czech Republic (Czechia)", "Denmark", "Djibouti", "Dominica",
+            "Burkina Faso", "Burundi", "Cape Verde", "Cambodia", "Cameroon", "Canada",
+            "Central African Republic", "Chad", "Chile", "China (People's Republic of China)", "Colombia", "Comoros", "Costa Rica", "Croatia", "Cuba",
+            "Cyprus", "Czech Republic", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica",
             "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
             "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
             "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada",
@@ -106,14 +127,15 @@ class participants(QWidget):
             "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
             "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands",
             "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
-            "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay",
-            "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia",
+            "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay",
+            "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+            "Republic of the Congo", "Romania", "Russia",
             "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
             "Saint Vincent and the Grenadines", "Samoa", "San Marino",
             "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles",
             "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia",
             "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan",
-            "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania",
+            "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan (Republic of China)", "Tajikistan", "Tanzania",
             "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia",
             "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine",
             "United Arab Emirates", "United Kingdom", "United States", "Uruguay",
@@ -136,9 +158,9 @@ class participants(QWidget):
         next = QPushButton("Next...")
         next.clicked.connect(self.next)
         layout.addWidget(next)
-
+        self.initMenuBar()
         layout.addStretch()
-        self.setLayout(layout)
+
 
     def addDelegate(self):
         if self.customDel.text().strip() == "":
@@ -153,15 +175,36 @@ class participants(QWidget):
 
     def next(self):
         if len(delegatesList) < 2:
-            pass
-        else:
-            self.setup = attendance()
-            self.setup.show()
-            self.close()
+            return
+        self.presentWindow = presentationWindow()
+        self.setup = attendance(self.presentWindow)
+        self.setup.show()
+        self.close()
+
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+
+        fileMenu = menuBar.addMenu("File")
+
+        save = QAction("Save", self)
+        save.triggered.connect(lambda: print("Update roll call clicked!"))
+        fileMenu.addAction(save)
+
+        exitAction = QAction("Load", self)
+        exitAction.triggered.connect(QApplication.quit)
+        fileMenu.addAction(exitAction)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
 
 class attendance(QWidget):
-    def __init__(self):
+    def __init__(self, presentWindow):
         super().__init__()
+        self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Roll Call")
 
         self.setGeometry(100, 100, 500, 400)
@@ -192,7 +235,7 @@ class attendance(QWidget):
                 "voting": voting,
             })
 
-        submit = QPushButton("Finish roll-call")
+        submit = QPushButton("Update roll-call")
         submit.clicked.connect(self.submit)
         verticalLayout.addWidget(submit)
         verticalLayout.addStretch()
@@ -217,42 +260,53 @@ class attendance(QWidget):
             presentVotingList[0].append(isPresent)
             presentVotingList[1].append(isVoting)
 
-        self.presentWindow = presentationWindow()
+        self.presentWindow.updateContents()
         self.presentWindow.show()
 
-        print(presentVotingList)
 
 class presentationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Roll call")
         self.setGeometry(150, 150, 1280, 720)
 
-        centralWidget = QWidget()
-        self.setCentralWidget(centralWidget)
+        self.centralWidget = QWidget()
+        self.setCentralWidget(self.centralWidget)
+        self.verticalLayout = QVBoxLayout()
+        self.centralWidget.setLayout(self.verticalLayout)
 
-        verticalLayout = QVBoxLayout()
-        verticalLayout.setContentsMargins(40, 20, 40, 20)
-        verticalLayout.setSpacing(20)
-        header = QLabel("<h1>Roll call</h1><br>")
-        verticalLayout.addWidget(header)
+        self.header = QLabel("<h1>Roll call</h1>")
+        self.verticalLayout.addWidget(self.header)
+
+        self.contentLayout = QVBoxLayout()
+        self.verticalLayout.addLayout(self.contentLayout)
+
+        self.verticalLayout.addStretch()
+
+    def updateContents(self):
+        while self.contentLayout.count():
+            item = self.contentLayout.takeAt(0)
+
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clearLayout(item.layout())
+                item.layout().deleteLater()
 
         for i in range(len(delegatesList)):
-            print(presentVotingList)
-            print(i)
             rowLayout = QHBoxLayout()
-
             nameLabel = QLabel(delegatesList[i])
             rowLayout.addWidget(nameLabel)
             rowLayout.addStretch()
+
             present = presentVotingList[0][i]
             voting = presentVotingList[1][i]
 
             presentLabel = QLabel("Present" if present else "Not present")
             presentLabel.setStyleSheet("color: green;" if present else "color: red;")
             rowLayout.addWidget(presentLabel)
-            votingLabel = QLabel("Voting" if voting else "Not Voting")
+
+            votingLabel = QLabel("Voting" if voting else "Can abstain")
             votingLabel.setStyleSheet("color: #5b92e5;" if voting else "color: gray;")
             rowLayout.addWidget(votingLabel)
 
@@ -261,10 +315,17 @@ class presentationWindow(QMainWindow):
             centered.addLayout(rowLayout)
             centered.addStretch()
 
-            verticalLayout.addLayout(centered)
+            self.contentLayout.addLayout(centered)
 
-        verticalLayout.addStretch()
-        centralWidget.setLayout(verticalLayout)
+    def clearLayout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clearLayout(item.layout())
+                item.layout().deleteLater()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
