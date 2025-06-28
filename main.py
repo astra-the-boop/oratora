@@ -11,6 +11,7 @@ presentVotingList=[#same index as delegatesList
     []#voting
 ]
 
+
 class committeeCreate(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -734,6 +735,14 @@ class motions(QMainWindow):
             layout.addStretch()
 
 
+    def clearLayout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clearLayout(item.layout())
+                item.layout().deleteLater()
 
     def initMenuBar(self):
         menuBar = self.menuBar()
