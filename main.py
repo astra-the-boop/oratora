@@ -314,6 +314,7 @@ class presentationWindow(QMainWindow):
         self.verticalLayout.addStretch()
     def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None,
                       speakingTime=None):
+        self.header.setText("<h1>Motion</h1>")
         self.clearLayout(self.contentLayout)
 
         motionLabel = QLabel(f"<h2>{motionType}</h2>")
