@@ -298,9 +298,10 @@ class attendance(QMainWindow):
 class presentationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.motionHistory = []
         self.setWindowTitle("Roll call")
         self.setGeometry(150, 150, 1280, 720)
-
+        self.isShowingMotion = False
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
         self.verticalLayout = QVBoxLayout()
@@ -313,8 +314,9 @@ class presentationWindow(QMainWindow):
         self.verticalLayout.addLayout(self.contentLayout)
 
         self.verticalLayout.addStretch()
-    def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None,
-                      speakingTime=None):
+
+    def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None, speakingTime=None, result=None):
+        self.isShowingMotion = True
         self.header.setText("<h1>Motion</h1>")
         self.clearLayout(self.contentLayout)
 
@@ -336,6 +338,12 @@ class presentationWindow(QMainWindow):
         if speakingTime is not None:
             speakingLabel = QLabel(f"Speaking time: {speakingTime} sec")
             self.contentLayout.addWidget(speakingLabel)
+
+        if result:
+            self.contentLayout.addWidget(QLabel(f"<b>Result: {result}</b>"))
+
+
+        self.contentLayout.addLayout(buttonLayout)
 
     def updateContents(self):
         while self.contentLayout.count():
@@ -380,6 +388,35 @@ class presentationWindow(QMainWindow):
                 self.clearLayout(item.layout())
                 item.layout().deleteLater()
 
+    def finalizeMotion(self, motionType, proposer, title, totalMinutes, totalSeconds, speakingTime, result):
+        motionData = {
+            "type": motionType,
+            "proposer": proposer,
+            "title": title,
+            "totalMinutes": totalMinutes,
+            "totalSeconds": totalSeconds,
+            "speakingTime": speakingTime,
+            "result": result
+        }
+
+        self.motionHistory.append(motionData)
+
+        QMessageBox.information(self, "Motion Result", f"{motionType} {result}.")
+
+        self.updateContents()
+
+    def recordMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None, speakingTime=None, result=None):
+        motion = {
+            "type": motionType,
+            "proposer": proposer,
+            "title": title,
+            "totalMinutes": totalMinutes,
+            "totalSeconds": totalSeconds,
+            "speakingTime": speakingTime,
+            "result": result
+        }
+        self.motionHistory.append(motion)
+        self.displayMotion(motionType, proposer, title, totalMinutes, totalSeconds, speakingTime, result)
 
 
 class motions(QMainWindow):
@@ -438,16 +475,41 @@ class motions(QMainWindow):
         self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
         layout.addStretch()
+        resultButtons = QHBoxLayout()
+        self.passButton = QPushButton("Pass")
+        self.failButton = QPushButton("Fail")
+        resultButtons.addStretch()
+        resultButtons.addWidget(self.passButton)
+        resultButtons.addWidget(self.failButton)
+        resultButtons.addStretch()
+        layout.addLayout(resultButtons)
+
+        self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+        self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
 
     def submitMotion(self):
         motionType = self.motionType.currentText()
         proposer = self.proposer.currentText()
-        title = self.title.text() if hasattr(self, "title") else None
-        totalMin = self.totalTimeMinutes.value() if hasattr(self, "totalTimeMinutes") else None
-        totalSec = self.totalTimeSeconds.value() if hasattr(self, "totalTimeSeconds") else None
-        speaking = self.speakingTime.value() if hasattr(self, "speakingTime") else None
 
-        self.presentWindow.displayMotion(motionType, proposer, title, totalMin, totalSec, speaking)
+        if motionType in ["Open Moderated Caucus", "Extend Moderated Caucus"]:
+            title = self.title.text()
+            totalMin = self.totalTimeMinutes.value()
+            totalSec = self.totalTimeSeconds.value()
+            speaking = self.speakingTime.value()
+            self.presentWindow.displayMotion(motionType, proposer, title, totalMin, totalSec, speaking)
+
+        elif motionType in ["Open Unmoderated Caucus", "Extend Unmoderated Caucus"]:
+            totalMin = self.totalTimeMinutes.value()
+            totalSec = self.totalTimeSeconds.value()
+            self.presentWindow.displayMotion(motionType, proposer, None, totalMin, totalSec, None)
+
+        elif motionType in ["Open Debate", "Close Debate", "Adjourn Session", "Suspend Session"]:
+            self.presentWindow.displayMotion(motionType, proposer)
+
+        else:
+            QMessageBox.warning(self, "Unimplemented", f"{motionType} hasn't been implemented yet.")
+            return
+
         self.presentWindow.show()
 
     def onTypeChanged(self, layout, presentWindow):
@@ -511,6 +573,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Open Unmoderated Caucus":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -558,6 +631,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Extend Unmoderated Caucus":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -605,6 +689,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Open Debate":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -637,6 +732,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Close Debate":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -669,6 +775,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Adjourn Session":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -701,6 +818,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
         elif motionType == "Suspend Session":
             self.presentWindow = presentWindow
             self.setWindowTitle("Oratora — Create Motion")
@@ -733,6 +861,17 @@ class motions(QMainWindow):
             self.motionType.currentTextChanged.connect(lambda: self.onTypeChanged(layout, presentWindow))
 
             layout.addStretch()
+            resultButtons = QHBoxLayout()
+            self.passButton = QPushButton("Pass")
+            self.failButton = QPushButton("Fail")
+            resultButtons.addStretch()
+            resultButtons.addWidget(self.passButton)
+            resultButtons.addWidget(self.failButton)
+            resultButtons.addStretch()
+            layout.addLayout(resultButtons)
+
+            self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
+            self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
 
 
     def clearLayout(self, layout):
@@ -743,6 +882,18 @@ class motions(QMainWindow):
             elif item.layout():
                 self.clearLayout(item.layout())
                 item.layout().deleteLater()
+
+    def finalizeMotion(self, result):
+        motionType = self.motionType.currentText()
+        proposer = self.proposer.currentText()
+        title = self.title.text() if hasattr(self, "title") else None
+        totalMin = self.totalTimeMinutes.value() if hasattr(self, "totalTimeMinutes") else None
+        totalSec = self.totalTimeSeconds.value() if hasattr(self, "totalTimeSeconds") else None
+        speaking = self.speakingTime.value() if hasattr(self, "speakingTime") else None
+
+        self.presentWindow.recordMotion(motionType, proposer, title, totalMin, totalSec, speaking, result)
+        self.presentWindow.show()
+        self.close()
 
     def initMenuBar(self):
         menuBar = self.menuBar()
@@ -769,7 +920,6 @@ class motions(QMainWindow):
         aboutAction = QAction("About", self)
         aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
         helpMenu.addAction(aboutAction)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
