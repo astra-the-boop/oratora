@@ -305,7 +305,8 @@ class presentationWindow(QMainWindow):
         self.verticalLayout = QVBoxLayout()
         self.centralWidget.setLayout(self.verticalLayout)
 
-
+        self.header = QLabel("<h1>Roll call</h1>")
+        self.verticalLayout.addWidget(self.header)
 
         self.contentLayout = QVBoxLayout()
         self.verticalLayout.addLayout(self.contentLayout)
@@ -345,8 +346,6 @@ class presentationWindow(QMainWindow):
                 item.layout().deleteLater()
 
         for i in range(len(delegatesList)):
-            self.header = QLabel("<h1>Roll call</h1>")
-            self.verticalLayout.addWidget(self.header)
             rowLayout = QHBoxLayout()
             nameLabel = QLabel(delegatesList[i])
             rowLayout.addWidget(nameLabel)
