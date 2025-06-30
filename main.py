@@ -1,6 +1,6 @@
 from PySide6.QtGui import QAction
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import *
-from PySide6.QtCore import QTimer, QTime
 import sys
 
 committeeName = ""
@@ -285,6 +285,10 @@ class attendance(QMainWindow):
         createMotion.triggered.connect(self.openMotionWindow)
         actionMenu.addAction(createMotion)
 
+        unmodAction = QAction("Unmoderated Caucus", self)
+        unmodAction.triggered.connect(self.openUnmodWindow)
+        actionMenu.addAction(unmodAction)
+
         helpMenu = menuBar.addMenu("Help")
 
         aboutAction = QAction("About", self)
@@ -295,6 +299,12 @@ class attendance(QMainWindow):
         self.motionWindow = motions(self.presentWindow)
         self.motionWindow.show()
         self.close()
+
+    def openUnmodWindow(self):
+        self.unmodWindow = unmod(self.presentWindow)
+        self.unmodWindow.show()
+        self.close()
+
 
 class presentationWindow(QMainWindow):
     def __init__(self):
@@ -587,9 +597,9 @@ class motions(QMainWindow):
         rollCall.triggered.connect(self.openRollCall)
         actionMenu.addAction(rollCall)
 
-        unmodAction = QAction("Start Unmoderated Caucus Timer", self)
-        unmodAction.triggered.connect(self.openUnmodTimer)
-        actionMenu.addAction(unmodAction)
+        unmodTimerAction = QAction("Unmoderated Caucus", self)
+        unmodTimerAction.triggered.connect(self.openUnmod)
+        actionMenu.addAction(unmodTimerAction)
 
         helpMenu = menuBar.addMenu("Help")
 
@@ -597,36 +607,23 @@ class motions(QMainWindow):
         aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
         helpMenu.addAction(aboutAction)
 
-    def openUnmodTimer(self):
-        minutes = self.totalTimeMinutes.value()
-        seconds = self.totalTimeSeconds.value()
-        self.unmodWindow = unmod(self.presentWindow, totalMinutes=minutes, totalSeconds=seconds)
-        self.unmodWindow.show()
-
-
-    def openUnmod(self):
-        self.unmodWindow = attendance(self.presentWindow)
-        self.unmodWindow.show()
-        self.close()
-
     def openRollCall(self):
         self.attendanceWindow = attendance(self.presentWindow)
         self.attendanceWindow.show()
         self.close()
+
+    def openUnmod(self):
+        self.unmodWindow = unmod(self.presentWindow)
+        self.unmodWindow.show()
+        self.close()
+
 
 class unmod(QMainWindow):
     def __init__(self, presentWindow, totalMinutes=5, totalSeconds=0):
         super().__init__()
         self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Unmoderated Caucus")
-        self.setGeometry(100, 100, 400, 300)
-
-        self.totalDuration = (totalMinutes * 60 + totalSeconds) * 1000  # milliseconds
-        self.remainingTime = self.totalDuration
-
-        self.timer = QTimer(self)
-        self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.updateTimer)
+        self.setGeometry(100, 100, 400, 400)
 
         self.initUI()
 
@@ -636,9 +633,31 @@ class unmod(QMainWindow):
 
         self.layout = QVBoxLayout()
         self.central.setLayout(self.layout)
+        self.layout.addWidget(QLabel("<h1>Unmoderated Caucus</h1>"))
+        self.layout.addWidget(QLabel("Set Duration:"))
 
-        self.timerDisplay = QLabel()
+        timeInputLayout = QHBoxLayout()
+        self.minutesInput = QSpinBox()
+        self.minutesInput.setRange(0, 60)
+        self.minutesInput.setSuffix(" min")
+        self.minutesInput.setValue(5)
+
+        self.secondsInput = QSpinBox()
+        self.secondsInput.setRange(0, 59)
+        self.secondsInput.setSuffix(" sec")
+        self.secondsInput.setValue(0)
+
+        timeInputLayout.addWidget(self.minutesInput)
+        timeInputLayout.addWidget(self.secondsInput)
+        self.layout.addLayout(timeInputLayout)
+
+        self.setTimeButton = QPushButton("Set Time")
+        self.setTimeButton.clicked.connect(self.setTimer)
+        self.layout.addWidget(self.setTimeButton)
+
+        self.timerDisplay = QLabel("00:00")
         self.timerDisplay.setStyleSheet("font-size: 48px; qproperty-alignment: 'AlignCenter';")
+        self.timerDisplay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.timerDisplay)
 
         self.startButton = QPushButton("Start")
@@ -653,6 +672,20 @@ class unmod(QMainWindow):
         self.resetButton.clicked.connect(self.resetTimer)
         self.layout.addWidget(self.resetButton)
 
+        # Timer setup
+        self.timer = QTimer(self)
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.updateTimer)
+
+        self.totalDuration = 5 * 60 * 1000
+        self.remainingTime = self.totalDuration
+        self.updateTimerDisplay()
+
+    def setTimer(self):
+        minutes = self.minutesInput.value()
+        seconds = self.secondsInput.value()
+        self.totalDuration = (minutes * 60 + seconds) * 1000
+        self.remainingTime = self.totalDuration
         self.updateTimerDisplay()
 
     def updateTimer(self):
@@ -680,6 +713,7 @@ class unmod(QMainWindow):
         self.timer.stop()
         self.remainingTime = self.totalDuration
         self.updateTimerDisplay()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
