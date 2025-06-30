@@ -243,7 +243,7 @@ class attendance(QMainWindow):
         self.initMenuBar()
         verticalLayout.addStretch()
 
-
+#i am going to fucking commit murderrrrrrrrRRRRRRRRRR
     def connectCheckboxes(self, present, voting):
         def onStateChanged(state):
             if state:
@@ -794,7 +794,9 @@ class modCauc(QMainWindow):
         self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Moderated Caucus")
         self.setGeometry(100, 100, 500, 400)
-
+#god fucking save me i am very much goign insane i hate this python library so much but it's way way too late to turn back save me save me save me save me save me akldflj,sa,vsdh,vfksdcsdkf krill meeeeee
+        if not self.presentWindow.isVisible():
+            self.presentWindow.show()
         self.totalTime = 5 * 60 * 1000
         self.speakerTime = 60 * 1000
         self.remainingTotal = self.totalTime
