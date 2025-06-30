@@ -285,6 +285,10 @@ class attendance(QMainWindow):
         createMotion.triggered.connect(self.openMotionWindow)
         actionMenu.addAction(createMotion)
 
+        createMod = QAction("Moderated Caucus / GSL", self)
+        createMod.triggered.connect(self.openModCauc)
+        actionMenu.addAction(createMod)
+
         unmodAction = QAction("Unmoderated Caucus", self)
         unmodAction.triggered.connect(self.openUnmodWindow)
         actionMenu.addAction(unmodAction)
@@ -303,6 +307,11 @@ class attendance(QMainWindow):
     def openUnmodWindow(self):
         self.unmodWindow = unmod(self.presentWindow)
         self.unmodWindow.show()
+        self.close()
+
+    def openModCauc(self):
+        self.modCauc = modCauc(self.presentWindow)
+        self.modCauc.show()
         self.close()
 
 
@@ -620,6 +629,10 @@ class motions(QMainWindow):
         rollCall.triggered.connect(self.openRollCall)
         actionMenu.addAction(rollCall)
 
+        createMod = QAction("Moderated Caucus / GSL", self)
+        createMod.triggered.connect(self.openModCauc)
+        actionMenu.addAction(createMod)
+
         unmodTimerAction = QAction("Unmoderated Caucus", self)
         unmodTimerAction.triggered.connect(self.openUnmod)
         actionMenu.addAction(unmodTimerAction)
@@ -638,6 +651,11 @@ class motions(QMainWindow):
     def openUnmod(self):
         self.unmodWindow = unmod(self.presentWindow)
         self.unmodWindow.show()
+        self.close()
+
+    def openModCauc(self):
+        self.modCauc = modCauc(self.presentWindow)
+        self.modCauc.show()
         self.close()
 
 
@@ -828,6 +846,21 @@ class modCauc(QMainWindow):
         self.speakerListWidget = QListWidget()
         self.mainLayout.addWidget(self.speakerListWidget)
 
+        self.totalTimeInput = QSpinBox()
+        self.totalTimeInput.setRange(1, 120)
+        self.totalTimeInput.setSuffix(" min")
+        self.totalTimeInput.setValue(5)
+        self.mainLayout.addWidget(QLabel("Total caucus time:"))
+        self.mainLayout.addWidget(self.totalTimeInput)
+
+        self.speakerTimeInput = QSpinBox()
+        self.speakerTimeInput.setRange(10, 300)
+        self.speakerTimeInput.setSuffix(" sec")
+        self.speakerTimeInput.setValue(60)
+        self.mainLayout.addWidget(QLabel("Time per speaker:"))
+        self.mainLayout.addWidget(self.speakerTimeInput)
+
+
         self.startBtn = QPushButton("Start")
         self.startBtn.clicked.connect(self.startTimers)
         self.mainLayout.addWidget(self.startBtn)
@@ -870,7 +903,12 @@ class modCauc(QMainWindow):
         self.updatePresentation()
 
     def startTimers(self):
+        self.totalTime = self.totalTimeInput.value() * 60 * 1000
+        self.speakerTime = self.speakerTimeInput.value() * 1000
+        self.remainingTotal = self.totalTime
+        self.remainingSpeaker = self.speakerTime
         self.timer.start()
+        self.updatePresentation()
 
     def pauseTimers(self):
         self.timer.stop()
