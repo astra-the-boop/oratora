@@ -428,6 +428,7 @@ class motions(QMainWindow):
         self.setGeometry(100, 100, 500, 400)
         self.motionQueue = []
 
+        self.initMenuBar()
         self.initUI()
 
     def initUI(self):
@@ -438,9 +439,10 @@ class motions(QMainWindow):
 
         self.motionType = QComboBox()
         self.motionType.addItems([
-            "Open Moderated Caucus", "Open Unmoderated Caucus", "Extend Unmoderated Caucus",
-            "Extend Moderated Caucus", "Close Moderated Caucus", "Introduce Draft Resolution",
-            "Introduce Amendment", "Vote on Resolution", "Open Debate", "Close Debate",
+            "Open Moderated Caucus", "Open Unmoderated Caucus",
+            #"Extend Unmoderated Caucus", "Extend Moderated Caucus", "Close Moderated Caucus", "Introduce Draft Resolution",
+            #"Introduce Amendment", "Vote on Resolution",
+            "Open Debate", "Close Debate",
             "Adjourn Session", "Suspend Session"
         ])
         self.layout.addWidget(QLabel("Motion for:"))
@@ -562,6 +564,32 @@ class motions(QMainWindow):
 
         QMessageBox.information(self, "Motion Status Updated", f"Motion marked as {result}.")
         self.presentWindow.show()
+
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+
+        fileMenu = menuBar.addMenu("File")
+
+        saveAction = QAction("Save", self)
+        saveAction.triggered.connect(lambda: print("Save clicked!"))
+        fileMenu.addAction(saveAction)
+
+        loadAction = QAction("Load", self)
+        loadAction.triggered.connect(lambda: print("Load clicked!"))
+        fileMenu.addAction(loadAction)
+
+        actionMenu = menuBar.addMenu("Actions")
+
+        # createMotion = QAction("Create Motion", self)
+        # createMotion.triggered.connect(self.openMotionWindow)
+        # actionMenu.addAction(createMotion)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
 
 
 if __name__ == "__main__":
