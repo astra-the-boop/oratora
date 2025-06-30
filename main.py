@@ -814,33 +814,63 @@ class modCauc(QMainWindow):
     def initUI(self):
         central = QWidget()
         self.setCentralWidget(central)
-        layout = QVBoxLayout()
-        central.setLayout(layout)
+        self.mainLayout = QVBoxLayout()
+        central.setLayout(self.mainLayout)
 
         self.speakerDropdown = QComboBox()
         self.speakerDropdown.addItems(delegatesList)
-        layout.addWidget(self.speakerDropdown)
+        self.mainLayout.addWidget(self.speakerDropdown)
 
         addBtn = QPushButton("Add Speaker")
         addBtn.clicked.connect(self.addSpeaker)
-        layout.addWidget(addBtn)
+        self.mainLayout.addWidget(addBtn)
 
         self.speakerListWidget = QListWidget()
-        layout.addWidget(self.speakerListWidget)
+        self.mainLayout.addWidget(self.speakerListWidget)
 
         self.startBtn = QPushButton("Start")
         self.startBtn.clicked.connect(self.startTimers)
-        layout.addWidget(self.startBtn)
+        self.mainLayout.addWidget(self.startBtn)
 
         self.pauseBtn = QPushButton("Pause")
         self.pauseBtn.clicked.connect(self.pauseTimers)
-        layout.addWidget(self.pauseBtn)
+        self.mainLayout.addWidget(self.pauseBtn)
 
         self.resetBtn = QPushButton("Reset")
         self.resetBtn.clicked.connect(self.resetTimers)
-        layout.addWidget(self.resetBtn)
+
+        self.skipButton = QPushButton("Skip Speaker")
+        self.skipButton.clicked.connect(self.skipSpeaker)
+        self.mainLayout.addWidget(self.skipButton)
+
+        self.yieldButton = QPushButton("Yield Time")
+        self.yieldButton.clicked.connect(self.yieldTime)
+        self.mainLayout.addWidget(self.yieldButton)
+
+        self.mainLayout.addWidget(self.resetBtn)
 
         self.updatePresentation()
+
+    def skipSpeaker(self):
+        self.nextSpeaker()
+
+    def yieldTime(self):
+        self.remainingTotal -= (self.speakerTime - self.remainingSpeaker)
+        self.nextSpeaker()
+
+    def nextSpeaker(self):
+        self.timer.stop()
+
+        self.currentSpeakerIndex += 1
+        if self.currentSpeakerIndex >= len(self.speakers):
+            QMessageBox.information(self, "GSL", "No more speakers.")
+            self.presentWindow.clearLayout(self.presentWindow.contentLayout)
+            return
+
+        self.speakerRemainingTime = self.speakerTime
+        self.updatePresentation()
+        self.updateTimerDisplay()
+        self.timer.start()
 
     def addSpeaker(self):
         name = self.speakerDropdown.currentText()
