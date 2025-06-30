@@ -315,11 +315,13 @@ class presentationWindow(QMainWindow):
 
         self.verticalLayout.addStretch()
 
+
+
     def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None, speakingTime=None, result=None):
         self.isShowingMotion = True
         self.header.setText("<h1>Motion</h1>")
         self.clearLayout(self.contentLayout)
-
+        buttonLayout = QHBoxLayout()
         motionLabel = QLabel(f"<h2>{motionType}</h2>")
         self.contentLayout.addWidget(motionLabel)
 
@@ -425,7 +427,7 @@ class motions(QMainWindow):
         self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Create Motion")
         self.setGeometry(100, 100, 500, 300)
-
+        self.motionQueue = []
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
         layout = QVBoxLayout()
@@ -443,7 +445,6 @@ class motions(QMainWindow):
         self.proposer.addItems(delegatesList)
         layout.addWidget(self.proposer)
 
-        self.title = QLineEdit()
         self.title.setPlaceholderText("Enter title of caucus")
         layout.addWidget(QLabel("Title:"))
         layout.addWidget(self.title)
@@ -490,27 +491,68 @@ class motions(QMainWindow):
     def submitMotion(self):
         motionType = self.motionType.currentText()
         proposer = self.proposer.currentText()
+        titleWidget = getattr(self, "title", None)
+        title = titleWidget.text() if isinstance(titleWidget, QLineEdit) and titleWidget is not None else None
 
-        if motionType in ["Open Moderated Caucus", "Extend Moderated Caucus"]:
-            title = self.title.text()
-            totalMin = self.totalTimeMinutes.value()
-            totalSec = self.totalTimeSeconds.value()
-            speaking = self.speakingTime.value()
-            self.presentWindow.displayMotion(motionType, proposer, title, totalMin, totalSec, speaking)
+        minutesWidget = getattr(self, "totalTimeMinutes", None)
+        totalMin = minutesWidget.value() if isinstance(minutesWidget, QSpinBox) and minutesWidget is not None else None
 
-        elif motionType in ["Open Unmoderated Caucus", "Extend Unmoderated Caucus"]:
-            totalMin = self.totalTimeMinutes.value()
-            totalSec = self.totalTimeSeconds.value()
-            self.presentWindow.displayMotion(motionType, proposer, None, totalMin, totalSec, None)
+        secondsWidget = getattr(self, "totalTimeSeconds", None)
+        totalSec = secondsWidget.value() if isinstance(secondsWidget, QSpinBox) and secondsWidget is not None else None
 
-        elif motionType in ["Open Debate", "Close Debate", "Adjourn Session", "Suspend Session"]:
-            self.presentWindow.displayMotion(motionType, proposer)
+        speakingWidget = getattr(self, "speakingTime", None)
+        speaking = speakingWidget.value() if isinstance(speakingWidget,
+                                                        QSpinBox) and speakingWidget is not None else None
 
+        # Record motion in list (for queue/log)
+        motionRecord = {
+            "type": motionType,
+            "proposer": proposer,
+            "title": title,
+            "totalMin": totalMin,
+            "totalSec": totalSec,
+            "speaking": speaking,
+            "status": "Pending"
+        }
+        self.motionQueue.append(motionRecord)
+
+        self.displayVotingButtons(motionType, motionRecord)
+
+    def displayVotingButtons(self, motionType, motionRecord):
+        # Only for vote-based motions
+        voteRequired = motionType in [
+            "Open Unmoderated Caucus", "Open Debate", "Close Debate", "Adjourn Session", "Suspend Session"
+        ]
+        if voteRequired:
+            voteLayout = QHBoxLayout()
+            passButton = QPushButton("Pass")
+            failButton = QPushButton("Fail")
+
+            passButton.clicked.connect(lambda: self.voteResult("Passed", motionRecord))
+            failButton.clicked.connect(lambda: self.voteResult("Failed", motionRecord))
+
+            voteLayout.addWidget(passButton)
+            voteLayout.addWidget(failButton)
+            self.centralWidget().layout().addLayout(voteLayout)
         else:
-            QMessageBox.warning(self, "Unimplemented", f"{motionType} hasn't been implemented yet.")
-            return
+            # If no vote required, start motion immediately
+            self.presentWindow.displayMotion(
+                motionType, motionRecord["proposer"], motionRecord["title"],
+                motionRecord["totalMin"], motionRecord["totalSec"], motionRecord["speaking"]
+            )
+            self.presentWindow.show()
+            self.close()
 
+    def voteResult(self, result, motionRecord):
+        motionRecord["status"] = result
+        if result == "Passed":
+            self.presentWindow.displayMotion(
+                motionRecord["type"], motionRecord["proposer"], motionRecord["title"],
+                motionRecord["totalMin"], motionRecord["totalSec"], motionRecord["speaking"]
+            )
+        QMessageBox.information(self, "Motion Vote", f"Motion {result}")
         self.presentWindow.show()
+        self.close()
 
     def onTypeChanged(self, layout, presentWindow):
         motionType = self.motionType.currentText()
@@ -873,15 +915,14 @@ class motions(QMainWindow):
             self.passButton.clicked.connect(lambda: self.finalizeMotion("Passed"))
             self.failButton.clicked.connect(lambda: self.finalizeMotion("Failed"))
 
-
     def clearLayout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
             elif item.layout():
                 self.clearLayout(item.layout())
-                item.layout().deleteLater()
 
     def finalizeMotion(self, result):
         motionType = self.motionType.currentText()
