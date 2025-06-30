@@ -625,6 +625,8 @@ class unmod(QMainWindow):
         self.setWindowTitle("Oratora — Unmoderated Caucus")
         self.setGeometry(100, 100, 400, 400)
 
+        self.initMenuBar()
+
         self.initUI()
 
     def initUI(self):
@@ -713,6 +715,46 @@ class unmod(QMainWindow):
         self.timer.stop()
         self.remainingTime = self.totalDuration
         self.updateTimerDisplay()
+
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+
+        fileMenu = menuBar.addMenu("File")
+
+        saveAction = QAction("Save", self)
+        saveAction.triggered.connect(lambda: print("Save clicked!"))
+        fileMenu.addAction(saveAction)
+
+        loadAction = QAction("Load", self)
+        loadAction.triggered.connect(lambda: print("Load clicked!"))
+        fileMenu.addAction(loadAction)
+
+        actionMenu = menuBar.addMenu("Actions")
+
+        rollCall = QAction("Roll Call", self)
+        rollCall.triggered.connect(self.openRollCall)
+        actionMenu.addAction(rollCall)
+
+        createMotion = QAction("Create Motion", self)
+        createMotion.triggered.connect(self.openMotionWindow)
+        actionMenu.addAction(createMotion)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
+
+    def openRollCall(self):
+        self.attendanceWindow = attendance(self.presentWindow)
+        self.attendanceWindow.show()
+        self.close()
+
+    def openMotionWindow(self):
+        self.motionWindow = motions(self.presentWindow)
+        self.motionWindow.show()
+        self.close()
 
 
 if __name__ == "__main__":
