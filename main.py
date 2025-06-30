@@ -839,10 +839,6 @@ class modCauc(QMainWindow):
         self.resetBtn = QPushButton("Reset")
         self.resetBtn.clicked.connect(self.resetTimers)
 
-        self.skipButton = QPushButton("Skip Speaker")
-        self.skipButton.clicked.connect(self.skipSpeaker)
-        self.mainLayout.addWidget(self.skipButton)
-
         self.yieldButton = QPushButton("Yield Time")
         self.yieldButton.clicked.connect(self.yieldTime)
         self.mainLayout.addWidget(self.yieldButton)
@@ -851,11 +847,7 @@ class modCauc(QMainWindow):
 
         self.updatePresentation()
 
-    def skipSpeaker(self):
-        self.nextSpeaker()
-
     def yieldTime(self):
-        self.remainingTotal -= (self.speakerTime - self.remainingSpeaker)
         self.nextSpeaker()
 
     def nextSpeaker(self):
@@ -869,7 +861,6 @@ class modCauc(QMainWindow):
 
         self.speakerRemainingTime = self.speakerTime
         self.updatePresentation()
-        self.updateTimerDisplay()
         self.timer.start()
 
     def addSpeaker(self):
