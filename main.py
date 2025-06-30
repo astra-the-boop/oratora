@@ -1191,10 +1191,11 @@ class votingPanel(QMainWindow):
         self.motionWindow.show()
         self.close()
 
-    def openVotingPanel(self):
-        self.voteWindow = votingPanel(self.presentWindow)
-        self.voteWindow.show()
+    def openModCauc(self):
+        self.modCauc = modCauc(self.presentWindow)
+        self.modCauc.show()
         self.close()
+
 
 
 if __name__ == "__main__":
