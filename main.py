@@ -440,7 +440,8 @@ class motions(QMainWindow):
         self.motionType = QComboBox()
         self.motionType.addItems([
             "Open Moderated Caucus", "Open Unmoderated Caucus",
-            #"Extend Unmoderated Caucus", "Extend Moderated Caucus", "Close Moderated Caucus", "Introduce Draft Resolution",
+            #"Extend Unmoderated Caucus", "Extend Moderated Caucus"
+            # , "Close Moderated Caucus", "Introduce Draft Resolution",
             #"Introduce Amendment", "Vote on Resolution",
             "Open Debate", "Close Debate",
             "Adjourn Session", "Suspend Session"
@@ -581,9 +582,9 @@ class motions(QMainWindow):
 
         actionMenu = menuBar.addMenu("Actions")
 
-        # createMotion = QAction("Create Motion", self)
-        # createMotion.triggered.connect(self.openMotionWindow)
-        # actionMenu.addAction(createMotion)
+        rollCall = QAction("Roll Call", self)
+        rollCall.triggered.connect(self.openRollCall)
+        actionMenu.addAction(rollCall)
 
         helpMenu = menuBar.addMenu("Help")
 
@@ -591,6 +592,10 @@ class motions(QMainWindow):
         aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
         helpMenu.addAction(aboutAction)
 
+    def openRollCall(self):
+        self.attendanceWindow = attendance(self.presentWindow)
+        self.attendanceWindow.show()
+        self.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
