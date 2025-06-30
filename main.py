@@ -658,7 +658,7 @@ class unmod(QMainWindow):
         self.layout.addWidget(self.setTimeButton)
 
         self.timerDisplay = QLabel("00:00")
-        self.timerDisplay.setStyleSheet("font-size: 48px; qproperty-alignment: 'AlignCenter';")
+        self.timerDisplay.setStyleSheet("font-size: 100px; qproperty-alignment: 'AlignCenter';")
         self.timerDisplay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.timerDisplay)
 
