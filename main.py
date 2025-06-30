@@ -326,7 +326,30 @@ class presentationWindow(QMainWindow):
 
         self.verticalLayout.addStretch()
 
+    def displayModCauc(self, currentSpeaker, upcomingSpeakers, remainingSpeakerTime, remainingTotalTime):
+        self.header.setText("<h1>Moderated Caucus</h1>")
+        self.clearLayout(self.contentLayout)
 
+        current = QLabel(f"<h2>Current Speaker: {currentSpeaker}</h2>")
+        self.contentLayout.addWidget(current)
+
+        speakerTimeMin = remainingSpeakerTime // 60000
+        speakerTimeSec = (remainingSpeakerTime % 60000) // 1000
+        totalTimeMin = remainingTotalTime // 60000
+        totalTimeSec = (remainingTotalTime % 60000) // 1000
+
+        speakerTimeLabel = QLabel(f"Time left for speaker: {speakerTimeMin:02}:{speakerTimeSec:02}")
+        totalTimeLabel = QLabel(f"Total time left: {totalTimeMin:02}:{totalTimeSec:02}")
+
+        self.contentLayout.addWidget(speakerTimeLabel)
+        self.contentLayout.addWidget(totalTimeLabel)
+
+        if upcomingSpeakers:
+            upcomingLabel = QLabel("<b>Upcoming Speakers:</b>")
+            self.contentLayout.addWidget(upcomingLabel)
+
+            for speaker in upcomingSpeakers:
+                self.contentLayout.addWidget(QLabel(f"– {speaker}"))
 
     def displayMotion(self, motionType, proposer, title=None, totalMinutes=None, totalSeconds=None, speakingTime=None, result=None):
         self.isShowingMotion = True
@@ -740,6 +763,10 @@ class unmod(QMainWindow):
         createMotion.triggered.connect(self.openMotionWindow)
         actionMenu.addAction(createMotion)
 
+        createMod = QAction("Moderated Caucus / GSL", self)
+        createMod.triggered.connect(self.openModCauc)
+        actionMenu.addAction(createMod)
+
         helpMenu = menuBar.addMenu("Help")
 
         aboutAction = QAction("About", self)
@@ -755,6 +782,106 @@ class unmod(QMainWindow):
         self.motionWindow = motions(self.presentWindow)
         self.motionWindow.show()
         self.close()
+
+    def openModCauc(self):
+        self.modCauc = modCauc(self.presentWindow)
+        self.modCauc.show()
+        self.close()
+
+class modCauc(QMainWindow):
+    def __init__(self, presentWindow):
+        super().__init__()
+        self.presentWindow = presentWindow
+        self.setWindowTitle("Oratora — Moderated Caucus")
+        self.setGeometry(100, 100, 500, 400)
+
+        self.totalTime = 5 * 60 * 1000
+        self.speakerTime = 60 * 1000
+        self.remainingTotal = self.totalTime
+        self.remainingSpeaker = self.speakerTime
+
+        self.speakers = []
+        self.currentSpeakerIndex = 0
+
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.updateTimers)
+
+        self.initUI()
+
+    def initUI(self):
+        central = QWidget()
+        self.setCentralWidget(central)
+        layout = QVBoxLayout()
+        central.setLayout(layout)
+
+        self.speakerDropdown = QComboBox()
+        self.speakerDropdown.addItems(delegatesList)
+        layout.addWidget(self.speakerDropdown)
+
+        addBtn = QPushButton("Add Speaker")
+        addBtn.clicked.connect(self.addSpeaker)
+        layout.addWidget(addBtn)
+
+        self.speakerListWidget = QListWidget()
+        layout.addWidget(self.speakerListWidget)
+
+        self.startBtn = QPushButton("Start")
+        self.startBtn.clicked.connect(self.startTimers)
+        layout.addWidget(self.startBtn)
+
+        self.pauseBtn = QPushButton("Pause")
+        self.pauseBtn.clicked.connect(self.pauseTimers)
+        layout.addWidget(self.pauseBtn)
+
+        self.resetBtn = QPushButton("Reset")
+        self.resetBtn.clicked.connect(self.resetTimers)
+        layout.addWidget(self.resetBtn)
+
+        self.updatePresentation()
+
+    def addSpeaker(self):
+        name = self.speakerDropdown.currentText()
+        self.speakers.append(name)
+        self.speakerListWidget.addItem(name)
+        self.updatePresentation()
+
+    def startTimers(self):
+        self.timer.start()
+
+    def pauseTimers(self):
+        self.timer.stop()
+
+    def resetTimers(self):
+        self.remainingTotal = self.totalTime
+        self.remainingSpeaker = self.speakerTime
+        self.currentSpeakerIndex = 0
+        self.timer.stop()
+        self.updatePresentation()
+
+    def updateTimers(self):
+        self.remainingSpeaker -= 1000
+        self.remainingTotal -= 1000
+
+        if self.remainingSpeaker <= 0:
+            self.remainingSpeaker = self.speakerTime
+            self.currentSpeakerIndex += 1
+            if self.currentSpeakerIndex >= len(self.speakers):
+                self.timer.stop()
+                return
+
+        self.updatePresentation()
+
+    def updatePresentation(self):
+        current = self.speakers[self.currentSpeakerIndex] if self.currentSpeakerIndex < len(self.speakers) else "(None)"
+        upcoming = self.speakers[self.currentSpeakerIndex+1:]
+
+        self.presentWindow.displayModCauc(
+            current,
+            upcoming,
+            self.remainingSpeaker,
+            self.remainingTotal
+        )
 
 
 if __name__ == "__main__":
