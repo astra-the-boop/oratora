@@ -798,6 +798,10 @@ class unmod(QMainWindow):
         createMod.triggered.connect(self.openModCauc)
         actionMenu.addAction(createMod)
 
+        voteAction = QAction("Voting", self)
+        voteAction.triggered.connect(self.openVotingPanel)
+        actionMenu.addAction(voteAction)
+
         helpMenu = menuBar.addMenu("Help")
 
         aboutAction = QAction("About", self)
@@ -819,12 +823,18 @@ class unmod(QMainWindow):
         self.modCauc.show()
         self.close()
 
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
+
 class modCauc(QMainWindow):
     def __init__(self, presentWindow):
         super().__init__()
         self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Moderated Caucus")
         self.setGeometry(100, 100, 500, 400)
+        self.initMenuBar()
 #god fucking save me i am very much goign insane i hate this python library so much but it's way way too late to turn back save me save me save me save me save me akldflj,sa,vsdh,vfksdcsdkf krill meeeeee
         if not self.presentWindow.isVisible():
             self.presentWindow.show()
@@ -956,6 +966,68 @@ class modCauc(QMainWindow):
             self.remainingSpeaker,
             self.remainingTotal
         )
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+
+        fileMenu = menuBar.addMenu("File")
+
+        saveAction = QAction("Save", self)
+        saveAction.triggered.connect(lambda: print("Save clicked!"))
+        fileMenu.addAction(saveAction)
+
+        loadAction = QAction("Load", self)
+        loadAction.triggered.connect(lambda: print("Load clicked!"))
+        fileMenu.addAction(loadAction)
+
+        actionMenu = menuBar.addMenu("Actions")
+
+        rollCall = QAction("Roll Call", self)
+        rollCall.triggered.connect(self.openRollCall)
+        actionMenu.addAction(rollCall)
+
+        createMotion = QAction("Create Motion", self)
+        createMotion.triggered.connect(self.openMotionWindow)
+        actionMenu.addAction(createMotion)
+
+        unmodTimerAction = QAction("Unmoderated Caucus", self)
+        unmodTimerAction.triggered.connect(self.openUnmod)
+        actionMenu.addAction(unmodTimerAction)
+
+        voteAction = QAction("Voting", self)
+        voteAction.triggered.connect(self.openVotingPanel)
+        actionMenu.addAction(voteAction)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
+
+    def openRollCall(self):
+        self.attendanceWindow = attendance(self.presentWindow)
+        self.attendanceWindow.show()
+        self.close()
+
+    def openUnmod(self):
+        self.unmodWindow = unmod(self.presentWindow)
+        self.unmodWindow.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
+
+    def openMotionWindow(self):
+        self.motionWindow = motions(self.presentWindow)
+        self.motionWindow.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
 
 class votingPanel(QMainWindow):
     def __init__(self, presentWindow):
