@@ -293,6 +293,10 @@ class attendance(QMainWindow):
         unmodAction.triggered.connect(self.openUnmodWindow)
         actionMenu.addAction(unmodAction)
 
+        voteAction = QAction("Voting", self)
+        voteAction.triggered.connect(self.openVotingPanel)
+        actionMenu.addAction(voteAction)
+
         helpMenu = menuBar.addMenu("Help")
 
         aboutAction = QAction("About", self)
@@ -312,6 +316,11 @@ class attendance(QMainWindow):
     def openModCauc(self):
         self.modCauc = modCauc(self.presentWindow)
         self.modCauc.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
         self.close()
 
 
@@ -670,6 +679,7 @@ class motions(QMainWindow):
     def openVotingPanel(self):
         self.voteWindow = votingPanel(self.presentWindow)
         self.voteWindow.show()
+        self.close()
 
 
 class unmod(QMainWindow):
@@ -1035,7 +1045,7 @@ class votingPanel(QMainWindow):
         self.presentWindow = presentWindow
         self.setWindowTitle("Oratora — Voting Panel")
         self.setGeometry(100, 100, 400, 300)
-
+        self.initMenuBar()
         self.yesCount = 0
         self.noCount = 0
         self.abstainCount = 0
@@ -1122,6 +1132,69 @@ class votingPanel(QMainWindow):
         self.presentWindow.contentLayout.addWidget(abstain)
         self.presentWindow.contentLayout.addWidget(required)
         self.presentWindow.contentLayout.addWidget(result)
+
+    def initMenuBar(self):
+        menuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+
+        fileMenu = menuBar.addMenu("File")
+
+        saveAction = QAction("Save", self)
+        saveAction.triggered.connect(lambda: print("Save clicked!"))
+        fileMenu.addAction(saveAction)
+
+        loadAction = QAction("Load", self)
+        loadAction.triggered.connect(lambda: print("Load clicked!"))
+        fileMenu.addAction(loadAction)
+
+        actionMenu = menuBar.addMenu("Actions")
+
+        rollCall = QAction("Roll Call", self)
+        rollCall.triggered.connect(self.openRollCall)
+        actionMenu.addAction(rollCall)
+
+        createMotion = QAction("Create Motion", self)
+        createMotion.triggered.connect(self.openMotionWindow)
+        actionMenu.addAction(createMotion)
+
+        createMod = QAction("Moderated Caucus / GSL", self)
+        createMod.triggered.connect(self.openModCauc)
+        actionMenu.addAction(createMod)
+
+        unmodTimerAction = QAction("Unmoderated Caucus", self)
+        unmodTimerAction.triggered.connect(self.openUnmod)
+        actionMenu.addAction(unmodTimerAction)
+
+        helpMenu = menuBar.addMenu("Help")
+
+        aboutAction = QAction("About", self)
+        aboutAction.triggered.connect(lambda: QMessageBox.information(self, "About Oratora", "Made with ❤️ by Astra"))
+        helpMenu.addAction(aboutAction)
+
+    def openRollCall(self):
+        self.attendanceWindow = attendance(self.presentWindow)
+        self.attendanceWindow.show()
+        self.close()
+
+    def openUnmod(self):
+        self.unmodWindow = unmod(self.presentWindow)
+        self.unmodWindow.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
+
+    def openMotionWindow(self):
+        self.motionWindow = motions(self.presentWindow)
+        self.motionWindow.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
 
 
 if __name__ == "__main__":
