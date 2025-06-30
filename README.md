@@ -25,20 +25,29 @@ _This project still has a lot to come! We'll come out with more features soon, b
 
 # Installation:
 
-## **Requirements:**
+ **Requirements:**
 > Python 3.10
 > 
 > git (for installation)
 
 
+
+Enter the following into your terminal:
+
 ```bash
 git clone https://github.com/astra-the-boop/oratora.git
 cd oratora
-python -m venv venv
+```
+
+
+```bash
+python3 -m venv venv  
 source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
+To run:
+
 ```bash
-python main.py #or if that doesn't work, try python3 main.py
+python main.py
 ```
