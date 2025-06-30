@@ -637,6 +637,10 @@ class motions(QMainWindow):
         unmodTimerAction.triggered.connect(self.openUnmod)
         actionMenu.addAction(unmodTimerAction)
 
+        voteAction = QAction("Voting", self)
+        voteAction.triggered.connect(self.openVotingPanel)
+        actionMenu.addAction(voteAction)
+
         helpMenu = menuBar.addMenu("Help")
 
         aboutAction = QAction("About", self)
@@ -657,6 +661,15 @@ class motions(QMainWindow):
         self.modCauc = modCauc(self.presentWindow)
         self.modCauc.show()
         self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
+        self.close()
+
+    def openVotingPanel(self):
+        self.voteWindow = votingPanel(self.presentWindow)
+        self.voteWindow.show()
 
 
 class unmod(QMainWindow):
@@ -943,6 +956,100 @@ class modCauc(QMainWindow):
             self.remainingSpeaker,
             self.remainingTotal
         )
+
+class votingPanel(QMainWindow):
+    def __init__(self, presentWindow):
+        super().__init__()
+        self.presentWindow = presentWindow
+        self.setWindowTitle("Oratora — Voting Panel")
+        self.setGeometry(100, 100, 400, 300)
+
+        self.yesCount = 0
+        self.noCount = 0
+        self.abstainCount = 0
+        self.requiredPercent = 50  # default threshold to pass
+
+        self.initUI()
+        self.presentWindow.show()  # Automatically show presentation window
+
+    def initUI(self):
+        central = QWidget()
+        self.setCentralWidget(central)
+        layout = QVBoxLayout()
+        central.setLayout(layout)
+
+        self.voteDisplays = {}
+        for label in ["Yes", "No", "Abstain"]:
+            h = QHBoxLayout()
+            countLabel = QLabel(f"{label}: 0")
+            self.voteDisplays[label] = countLabel
+            h.addWidget(countLabel)
+            plus = QPushButton("+")
+            minus = QPushButton("-")
+            plus.clicked.connect(lambda _, l=label: self.adjustVote(l, 1))
+            minus.clicked.connect(lambda _, l=label: self.adjustVote(l, -1))
+            h.addWidget(plus)
+            h.addWidget(minus)
+            layout.addLayout(h)
+
+        self.percentInput = QSpinBox()
+        self.percentInput.setRange(0, 100)
+        self.percentInput.setValue(self.requiredPercent)
+        self.percentInput.setSuffix("% required to pass")
+        self.percentInput.valueChanged.connect(self.recalculate)
+        layout.addWidget(self.percentInput)
+
+        layout.addStretch()
+        self.recalculate()
+
+    def adjustVote(self, category, delta):
+        if category == "Yes":
+            self.yesCount = max(0, self.yesCount + delta)
+        elif category == "No":
+            self.noCount = max(0, self.noCount + delta)
+        elif category == "Abstain":
+            self.abstainCount = max(0, self.abstainCount + delta)
+        self.updateVotes()
+        self.recalculate()
+
+    def updateVotes(self):
+        self.voteDisplays["Yes"].setText(f"Yes: {self.yesCount}")
+        self.voteDisplays["No"].setText(f"No: {self.noCount}")
+        self.voteDisplays["Abstain"].setText(f"Abstain: {self.abstainCount}")
+
+    def recalculate(self):
+        totalVoting = self.yesCount + self.noCount
+        if totalVoting == 0:
+            resultText = "—"
+            resultStyle = "color: black;"
+        else:
+            yesPercentage = (self.yesCount / totalVoting) * 100
+            required = self.percentInput.value()
+            if yesPercentage >= required:
+                resultText = f"Passed ({yesPercentage:.1f}% Yes)"
+                resultStyle = "color: green;"
+            else:
+                resultText = f"Failed ({yesPercentage:.1f}% Yes)"
+                resultStyle = "color: red;"
+
+        self.displayOnPresentation(resultText, resultStyle)
+
+    def displayOnPresentation(self, resultText, resultStyle):
+        self.presentWindow.clearLayout(self.presentWindow.contentLayout)
+        self.presentWindow.header.setText("<h1>Voting Results</h1>")
+
+        yes = QLabel(f"Yes: {self.yesCount}")
+        no = QLabel(f"No: {self.noCount}")
+        abstain = QLabel(f"Abstain: {self.abstainCount}")
+        required = QLabel(f"Required to Pass: {self.percentInput.value()}%")
+        result = QLabel(f"<b>{resultText}</b>")
+        result.setStyleSheet(resultStyle + " font-size: 24px;")
+
+        self.presentWindow.contentLayout.addWidget(yes)
+        self.presentWindow.contentLayout.addWidget(no)
+        self.presentWindow.contentLayout.addWidget(abstain)
+        self.presentWindow.contentLayout.addWidget(required)
+        self.presentWindow.contentLayout.addWidget(result)
 
 
 if __name__ == "__main__":
